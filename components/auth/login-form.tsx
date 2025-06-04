@@ -8,7 +8,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Eye, EyeOff } from 'lucide-react'
 
-export default function LoginForm() {
+interface LoginFormProps {
+  message?: string
+}
+
+export default function LoginForm({ message }: LoginFormProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -43,7 +47,7 @@ export default function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Email
         </label>
         <Input
@@ -58,7 +62,7 @@ export default function LoginForm() {
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Password
         </label>
         <div className="relative">
@@ -74,15 +78,19 @@ export default function LoginForm() {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
           >
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
         </div>
       </div>
 
+      {message && (
+        <div className="text-green-600 dark:text-green-400 text-sm text-center bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-200 dark:border-green-800">{message}</div>
+      )}
+
       {error && (
-        <div className="text-red-600 text-sm text-center">{error}</div>
+        <div className="text-red-600 dark:text-red-400 text-sm text-center">{error}</div>
       )}
 
       <Button type="submit" disabled={isLoading} className="w-full">
@@ -90,9 +98,9 @@ export default function LoginForm() {
       </Button>
 
       <div className="text-center">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 dark:text-gray-300">
           Don't have an account?{' '}
-          <Link href="/register" className="text-blue-600 hover:text-blue-500 font-medium">
+          <Link href="/register" className="text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 font-medium">
             Sign up
           </Link>
         </p>

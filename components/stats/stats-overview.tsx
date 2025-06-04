@@ -190,11 +190,11 @@ export default function StatsOverview({ habits }: StatsOverviewProps) {
 
   if (habits.length === 0) {
     return (
-      <div className="bg-white rounded-xl p-6 shadow-sm border">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Analytics</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border dark:border-gray-700">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Analytics</h3>
         <div className="text-center py-8">
-          <TrendingUp className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500">
+          <TrendingUp className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+          <p className="text-gray-500 dark:text-gray-400">
             Create some habits to view your analytics and progress charts.
           </p>
         </div>
@@ -205,8 +205,8 @@ export default function StatsOverview({ habits }: StatsOverviewProps) {
   return (
     <div className="space-y-6">
       {/* Weekly Progress Chart */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">7-Day Progress</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border dark:border-gray-700">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">7-Day Progress</h3>
         {chartData && (
           <div className="h-64">
             <Line 
@@ -244,29 +244,29 @@ export default function StatsOverview({ habits }: StatsOverviewProps) {
       </div>
 
       {/* Weekly Summary */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border dark:border-gray-700">
         <div className="flex items-center space-x-3 mb-4">
           <Calendar className="h-5 w-5 text-blue-600" />
-          <h3 className="text-lg font-semibold text-gray-900">This Week</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">This Week</h3>
         </div>
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <span className="text-gray-600">Completion Rate</span>
+            <span className="text-gray-600 dark:text-gray-400">Completion Rate</span>
             <span className="font-semibold text-blue-600">{weeklyStats.rate}%</span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-gray-600">Total Completions</span>
-            <span className="font-semibold">{weeklyStats.totalCompletions}</span>
+            <span className="text-gray-600 dark:text-gray-400">Total Completions</span>
+            <span className="font-semibold dark:text-white">{weeklyStats.totalCompletions}</span>
           </div>
         </div>
       </div>
 
       {/* Top Performer */}
       {topPerformer && topPerformer.habit && (
-        <div className="bg-white rounded-xl p-6 shadow-sm border">
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border dark:border-gray-700">
           <div className="flex items-center space-x-3 mb-4">
             <Trophy className="h-5 w-5 text-yellow-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Top Performer</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Top Performer</h3>
           </div>
           <div className="flex items-center space-x-3">
             <div
@@ -274,22 +274,22 @@ export default function StatsOverview({ habits }: StatsOverviewProps) {
               style={{ backgroundColor: topPerformer.habit.color }}
             />
             <div className="flex-1">
-              <p className="font-medium text-gray-900">{topPerformer.habit.title}</p>
-              <p className="text-sm text-gray-500">{topPerformer.rate}% completion rate</p>
+              <p className="font-medium text-gray-900 dark:text-white">{topPerformer.habit.title}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{topPerformer.rate}% completion rate</p>
             </div>
           </div>
         </div>
       )}
 
       {/* Current Streak */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border dark:border-gray-700">
         <div className="flex items-center space-x-3 mb-4">
           <Target className="h-5 w-5 text-green-600" />
-          <h3 className="text-lg font-semibold text-gray-900">Current Streak</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Current Streak</h3>
         </div>
         <div className="text-center">
           <p className="text-3xl font-bold text-green-600">{currentStreak}</p>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             {currentStreak === 1 ? 'day' : 'days'} with at least one habit completed
           </p>
         </div>

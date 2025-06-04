@@ -22,6 +22,7 @@ interface Habit {
   category?: string
   frequency: string
   target: number
+  days?: string
   createdAt: string
   updatedAt: string
   entries: HabitEntry[]
@@ -56,6 +57,20 @@ export default function HabitList({ habits, onHabitUpdated, onRefresh }: HabitLi
 
   const toggleHabitCompletion = async (habit: Habit) => {
     const today = getDateString(new Date())
+    
+    // Check if today is a valid day for custom_days habits
+    if (habit.frequency === 'custom_days' && habit.days) {
+      const selectedDays = typeof habit.days === 'string' ? JSON.parse(habit.days) : habit.days
+      const todayName = new Date().toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
+      
+      if (!selectedDays.includes(todayName)) {
+        const dayNames = selectedDays.map((day: string) => 
+          day.charAt(0).toUpperCase() + day.slice(1)
+        ).join(', ')
+        alert(`This habit is only scheduled for: ${dayNames}. Today is ${todayName.charAt(0).toUpperCase() + todayName.slice(1)}.`)
+        return
+      }
+    }
     
     // Prevent multiple rapid clicks
     if (completingHabits.has(habit.id)) {
@@ -232,10 +247,10 @@ export default function HabitList({ habits, onHabitUpdated, onRefresh }: HabitLi
 
   if (habits.length === 0) {
     return (
-      <div className="p-8 text-center">
-        <Circle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No habits yet</h3>
-        <p className="text-gray-500 mb-4">
+      <div className="p-6 sm:p-8 text-center">
+        <Circle className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No habits yet</h3>
+        <p className="text-gray-500 dark:text-gray-400 mb-4">
           Create your first habit to start tracking your progress.
         </p>
       </div>
@@ -243,18 +258,18 @@ export default function HabitList({ habits, onHabitUpdated, onRefresh }: HabitLi
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {Object.entries(habitsByCategory).map(([category, categoryHabits]) => (
-        <div key={category} className="space-y-3">
-          <div className="flex items-center space-x-2 px-6 pt-4">
-            <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+        <div key={category} className="space-y-2 sm:space-y-3">
+          <div className="flex items-center space-x-2 px-4 sm:px-6 pt-3 sm:pt-4">
+            <h3 className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
               {category}
             </h3>
-            <div className="flex-1 h-px bg-gray-200"></div>
-            <span className="text-xs text-gray-500">{categoryHabits.length} habits</span>
+            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
+            <span className="text-xs text-gray-500 dark:text-gray-400">{categoryHabits.length} habits</span>
           </div>
           
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-100 dark:divide-gray-700">
             <AnimatePresence>
               {categoryHabits.map((habit) => {
                 if (!habit) return null
@@ -279,23 +294,24 @@ export default function HabitList({ habits, onHabitUpdated, onRefresh }: HabitLi
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className="p-6 hover:bg-gray-50 transition-colors relative"
+                    className="p-4 sm:p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors relative touch-manipulation"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4 flex-1">
+                    <div className="flex items-start sm:items-center justify-between gap-3 sm:gap-4">
+                      <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
                         <motion.div
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
+                          className="flex-shrink-0 mt-1 sm:mt-0"
                         >
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => toggleHabitCompletion(habit)}
                             disabled={isProcessing || isDeleting}
-                            className={`h-8 w-8 rounded-full border-2 transition-all duration-300 relative overflow-hidden ${
+                            className={`h-8 w-8 rounded-full border-2 transition-all duration-300 relative overflow-hidden touch-manipulation tap-highlight-none ${
                               isCompletedToday
                                 ? 'bg-green-500 border-green-500 text-white hover:bg-green-600 shadow-lg'
-                                : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                                : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700'
                             }`}
                           >
                             <AnimatePresence mode="wait">
@@ -340,24 +356,24 @@ export default function HabitList({ habits, onHabitUpdated, onRefresh }: HabitLi
                           </Button>
                         </motion.div>
 
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <motion.div 
-                            className="flex items-center space-x-3"
+                            className="flex items-center space-x-2 sm:space-x-3"
                             animate={isRecentlyCompleted ? { scale: [1, 1.02, 1] } : {}}
                             transition={{ duration: 0.3 }}
                           >
                             <div
-                              className="w-3 h-3 rounded-full transition-all duration-300"
+                              className="w-3 h-3 rounded-full transition-all duration-300 flex-shrink-0"
                               style={{ backgroundColor: habit.color }}
                             />
-                            <h3 className={`font-medium transition-all duration-300 ${
-                              isCompletedToday ? 'text-gray-500 line-through' : 'text-gray-900'
+                            <h3 className={`font-medium transition-all duration-300 truncate ${
+                              isCompletedToday ? 'text-gray-500 dark:text-gray-400 line-through' : 'text-gray-900 dark:text-white'
                             }`}>
                               {habit.title}
                             </h3>
                             {streakEmoji && (
                               <motion.span 
-                                className="text-lg" 
+                                className="text-lg flex-shrink-0" 
                                 title={`${streak} day streak!`}
                                 animate={isRecentlyCompleted ? { scale: [1, 1.3, 1] } : {}}
                                 transition={{ duration: 0.4, delay: 0.2 }}
@@ -367,30 +383,58 @@ export default function HabitList({ habits, onHabitUpdated, onRefresh }: HabitLi
                             )}
                           </motion.div>
                           {habit.description && (
-                            <p className="text-sm text-gray-500 mt-1 ml-6">
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 ml-6 truncate">
                               {habit.description}
                             </p>
                           )}
-                          <div className="flex items-center space-x-4 mt-2 ml-6">
-                            <div className="flex items-center space-x-1 text-xs text-gray-500">
+                          <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-4 mt-2 ml-6">
+                            <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
                               <TrendingUp size={12} />
                               <span>{streak} day streak</span>
                             </div>
-                            <div className="flex items-center space-x-1 text-xs text-gray-500">
+                            <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
                               <Calendar size={12} />
-                              <span>{weekProgress}/7 this week</span>
+                              <span>
+                                {habit.frequency === 'custom_days' && habit.days ? (() => {
+                                  const selectedDays = typeof habit.days === 'string' ? JSON.parse(habit.days) : habit.days
+                                  return `${weekProgress}/${selectedDays.length} this week`
+                                })() : `${weekProgress}/7 this week`}
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 sm:ml-auto">
+                              {habit.frequency === 'daily' && 'Daily'}
+                              {habit.frequency === 'weekly' && 'Weekly'}
+                              {habit.frequency === 'monthly' && 'Monthly'}
+                              {habit.frequency === 'custom_days' && (() => {
+                                if (habit.days) {
+                                  const selectedDays = typeof habit.days === 'string' ? JSON.parse(habit.days) : habit.days
+                                  const dayAbbreviations: { [key: string]: string } = {
+                                    'monday': 'Mon',
+                                    'tuesday': 'Tue', 
+                                    'wednesday': 'Wed',
+                                    'thursday': 'Thu',
+                                    'friday': 'Fri',
+                                    'saturday': 'Sat',
+                                    'sunday': 'Sun'
+                                  }
+                                  const daysList = selectedDays.map((day: string) => dayAbbreviations[day] || day).join(', ')
+                                  return daysList
+                                } else {
+                                  return 'Custom Days'
+                                }
+                              })()}
                             </div>
                           </div>
                         </div>
                       </div>
 
-                      <div className="relative">
+                      <div className="relative flex-shrink-0">
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => setShowMenu(showMenu === habit.id ? null : habit.id)}
                           disabled={isDeleting}
-                          className="h-8 w-8 text-gray-400 hover:text-gray-600"
+                          className="h-8 w-8 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 touch-manipulation tap-highlight-none"
                         >
                           {isDeleting ? (
                             <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-transparent" />
@@ -404,13 +448,13 @@ export default function HabitList({ habits, onHabitUpdated, onRefresh }: HabitLi
                             initial={{ opacity: 0, scale: 0.95, y: -10 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                            className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border z-10" 
+                            className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border dark:border-gray-700 z-10" 
                             ref={menuRef}
                           >
                             <div className="py-1">
                               <button
                                 onClick={() => deleteHabit(habit.id)}
-                                className="flex items-center space-x-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left transition-colors"
+                                className="flex items-center space-x-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 w-full text-left transition-colors touch-manipulation"
                               >
                                 <Trash2 size={14} />
                                 <span>Delete Habit</span>
@@ -418,12 +462,6 @@ export default function HabitList({ habits, onHabitUpdated, onRefresh }: HabitLi
                             </div>
                           </motion.div>
                         )}
-                      </div>
-
-                      <div className="text-sm text-gray-500 ml-4">
-                        {habit.frequency === 'daily' && 'Daily'}
-                        {habit.frequency === 'weekly' && 'Weekly'}
-                        {habit.frequency === 'monthly' && 'Monthly'}
                       </div>
                     </div>
                   </motion.div>

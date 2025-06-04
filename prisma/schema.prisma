@@ -61,6 +61,7 @@ model Habit {
   category    String   @default("General")
   frequency   String   @default("daily") // daily, weekly, monthly
   target      Int      @default(1) // target completions per frequency period
+  days        String?  // JSON array of days for weekly habits: ["monday", "tuesday", "friday"]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   userId      String

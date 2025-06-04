@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Flame, Trophy, Target, Calendar } from 'lucide-react'
+import WaterFillCircle from '../ui/water-fill-circle'
 
 interface HabitEntry {
   id: string
@@ -65,7 +66,7 @@ export default function StreakMonitor({ habits }: StreakMonitorProps) {
     if (streak >= 14) return { level: 'ADVANCED', emoji: '🔥', color: 'text-red-400', bgColor: 'bg-red-50' }
     if (streak >= 7) return { level: 'INTERMEDIATE', emoji: '⭐', color: 'text-blue-500', bgColor: 'bg-blue-50' }
     if (streak >= 3) return { level: 'BEGINNER', emoji: '🌟', color: 'text-purple-500', bgColor: 'bg-purple-50' }
-    return { level: 'STARTING', emoji: '⚪', color: 'text-gray-500', bgColor: 'bg-gray-50' }
+    return { level: 'STARTING', emoji: '', color: 'text-gray-500', bgColor: 'bg-gray-50' }
   }
 
   const getTodayProgress = () => {
@@ -129,7 +130,7 @@ export default function StreakMonitor({ habits }: StreakMonitorProps) {
   return (
     <div className="space-y-6">
       {/* Overall Streak */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border dark:border-gray-700">
         <div className="text-center mb-6">
           <motion.div
             initial={{ scale: 0 }}
@@ -138,49 +139,43 @@ export default function StreakMonitor({ habits }: StreakMonitorProps) {
           >
             <span className="text-6xl">{overallLevel.emoji}</span>
           </motion.div>
-          <h3 className="text-2xl font-bold text-gray-900 mb-2">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
             {overallStreak} Day Streak!
           </h3>
           <p className={`text-sm font-medium ${overallLevel.color} uppercase tracking-wide`}>
             {overallLevel.level}
           </p>
-          <p className="text-gray-500 text-sm mt-2">
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
             Keep going! You've built amazing consistency.
           </p>
         </div>
 
-        {/* Today's Progress */}
-        <div className={`${overallLevel.bgColor} rounded-lg p-4`}>
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="font-medium text-gray-700">Today's Progress</h4>
-            <span className="text-sm font-medium text-gray-600">
-              {todayProgress.completed}/{todayProgress.total}
-            </span>
+        {/* Today's Progress - Replace with Water Fill Circle */}
+        <div className={`${overallLevel.bgColor} dark:bg-gray-700/50 rounded-lg p-6`}>
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="font-medium text-gray-700 dark:text-gray-300">Today's Progress</h4>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-3">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${todayProgress.percentage}%` }}
-              transition={{ duration: 1, ease: "easeOut" }}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full"
+          <div className="flex justify-center">
+            <WaterFillCircle
+              percentage={todayProgress.percentage}
+              completed={todayProgress.completed}
+              total={todayProgress.total}
+              size={140}
             />
           </div>
-          <p className="text-sm text-gray-600 mt-2">
-            {todayProgress.percentage}% complete
-          </p>
         </div>
       </div>
 
       {/* Individual Habit Streaks */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border dark:border-gray-700">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center space-x-2">
           <Flame className="w-5 h-5 text-orange-500" />
           <span>Habit Streaks</span>
         </h3>
         
         {habitStreaks.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-500">No habits tracked yet</p>
+            <p className="text-gray-500 dark:text-gray-400">No habits tracked yet</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -190,15 +185,15 @@ export default function StreakMonitor({ habits }: StreakMonitorProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className={`${level.bgColor} rounded-lg p-4 border-l-4`}
+                className={`${level.bgColor} dark:bg-gray-700/50 rounded-lg p-4 border-l-4`}
                 style={{ borderLeftColor: habit.color }}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3 flex-1">
                     <span className="text-2xl">{level.emoji}</span>
                     <div>
-                      <h4 className="font-medium text-gray-900">{habit.title}</h4>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                      <h4 className="font-medium text-gray-900 dark:text-white">{habit.title}</h4>
+                      <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
                         <span>{habit.category}</span>
                         <span>•</span>
                         <span className={level.color}>{level.level}</span>
@@ -206,8 +201,8 @@ export default function StreakMonitor({ habits }: StreakMonitorProps) {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-gray-900">{streak}</p>
-                    <p className="text-sm text-gray-600">days</p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">{streak}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">days</p>
                   </div>
                 </div>
                 
@@ -224,7 +219,7 @@ export default function StreakMonitor({ habits }: StreakMonitorProps) {
                     />
                   ))}
                   {streak > 30 && (
-                    <div className="flex items-center text-xs text-gray-500 ml-2">
+                    <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 ml-2">
                       +{streak - 30} more
                     </div>
                   )}
@@ -236,13 +231,13 @@ export default function StreakMonitor({ habits }: StreakMonitorProps) {
       </div>
 
       {/* Streak Milestones */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border dark:border-gray-700">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center space-x-2">
           <Trophy className="w-5 h-5 text-yellow-500" />
           <span>Next Milestones</span>
         </h3>
         
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
             { days: 7, emoji: '⭐', label: 'One Week' },
             { days: 14, emoji: '🔥', label: 'Two Weeks' },
@@ -257,17 +252,17 @@ export default function StreakMonitor({ habits }: StreakMonitorProps) {
                 key={milestone.days}
                 className={`p-3 rounded-lg border-2 ${
                   isAchieved 
-                    ? 'border-green-200 bg-green-50' 
-                    : 'border-gray-200 bg-gray-50'
+                    ? 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20' 
+                    : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30'
                 }`}
               >
                 <div className="flex items-center space-x-2 mb-2">
                   <span className="text-lg">{milestone.emoji}</span>
-                  <span className="font-medium text-gray-900">{milestone.label}</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{milestone.label}</span>
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   {isAchieved ? (
-                    <span className="text-green-600 font-medium">✓ Achieved!</span>
+                    <span className="text-green-600 dark:text-green-400 font-medium">✓ Achieved!</span>
                   ) : (
                     `${daysLeft} days to go`
                   )}

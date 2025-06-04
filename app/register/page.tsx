@@ -15,8 +15,8 @@ export default async function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="glass rounded-2xl p-8 shadow-xl">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Habit Monitor</h1>
-            <p className="text-gray-600">Create your account</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Habit Monitor</h1>
+            <p className="text-gray-600 dark:text-gray-300">Create your account</p>
           </div>
           <RegisterForm />
         </div>

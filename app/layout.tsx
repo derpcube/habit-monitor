@@ -2,6 +2,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { SessionProvider } from './providers/session-provider'
+import { ThemeProvider } from '@/components/theme-provider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -29,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#3B82F6" />
         <link rel="manifest" href="/manifest.json" />
@@ -40,11 +41,13 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className={inter.className}>
-        <SessionProvider>
-          <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-            {children}
-          </div>
-        </SessionProvider>
+        <ThemeProvider>
+          <SessionProvider>
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
+              {children}
+            </div>
+          </SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

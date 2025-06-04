@@ -9,8 +9,9 @@ const habitSchema = z.object({
   description: z.string().optional(),
   color: z.string().default('#3B82F6'),
   category: z.string().default('General'),
-  frequency: z.enum(['daily', 'weekly', 'monthly']).default('daily'),
+  frequency: z.enum(['daily', 'weekly', 'custom_days', 'monthly']).default('daily'),
   target: z.number().min(1).default(1),
+  days: z.string().optional(), // JSON string of selected days
 })
 
 export async function GET() {
