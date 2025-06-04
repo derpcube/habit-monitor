@@ -171,7 +171,7 @@ export default function WaterFillCircle({
             transition={{ duration: 0.8, delay: 0.5 }}
           >
             <div className={`font-bold text-gray-800 dark:text-white drop-shadow-lg ${
-              animatedPercentage === 100 ? 'text-4xl text-green-600 dark:text-green-400' : 'text-3xl'
+              animatedPercentage === 100 ? 'text-4xl text-green-800 dark:text-green-300' : 'text-3xl'
             }`}>
               {Math.round(animatedPercentage)}%
             </div>
