@@ -36,6 +36,14 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Security enhancements
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+  
+  @@index([userId])
+  @@index([expires])
 }
 
 model User {
@@ -47,11 +55,28 @@ model User {
   image         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-
+  
+  // Security enhancements
+  lastLoginAt   DateTime?
+  loginAttempts Int       @default(0)
+  lockedUntil   DateTime?
+  accountStatus String    @default("active") // active, suspended, banned, pending_verification
+  twoFactorEnabled Boolean @default(false)
+  twoFactorSecret String?
+  backupCodes   String[] // Array of backup codes for 2FA
+  
+  // Privacy settings
+  dataRetentionDays Int? @default(365) // How long to keep user data
+  
   accounts Account[]
   sessions Session[]
   habits   Habit[]
   aiRecommendations AIRecommendation[]
+  auditLogs UserAuditLog[]
+  
+  @@index([email])
+  @@index([accountStatus])
+  @@index([lastLoginAt])
 }
 
 model Habit {
@@ -66,11 +91,18 @@ model Habit {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   userId      String
+  
+  // Privacy and sharing settings
+  isPrivate   Boolean  @default(true)
+  isArchived  Boolean  @default(false)
 
   user    User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   entries HabitEntry[]
 
   @@index([userId])
+  @@index([category])
+  @@index([isArchived])
+  @@index([createdAt])
 }
 
 model HabitEntry {
@@ -84,6 +116,10 @@ model HabitEntry {
   mood          Int?     @default(5) // 1-10 scale for correlation analysis
   difficulty    Int?     @default(5) // 1-10 scale, how difficult was it today
   habitId       String
+  
+  // Metadata for analytics
+  deviceType    String?  // "mobile", "desktop", "tablet"
+  timezone      String?
 
   habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
 
@@ -91,6 +127,7 @@ model HabitEntry {
   @@index([habitId])
   @@index([timeOfDay])
   @@index([completedAt])
+  @@index([date])
 }
 
 // New model to track AI recommendations to prevent duplicates
@@ -108,4 +145,42 @@ model AIRecommendation {
   @@index([userId])
   @@index([recommendationType])
   @@index([createdAt])
+}
+
+// Security audit trail
+model UserAuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String   // "login", "logout", "password_change", "data_export", "account_update", etc.
+  details   Json?    // Additional details about the action
+  ipAddress String?
+  userAgent String?
+  timestamp DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([action])
+  @@index([timestamp])
+  @@index([ipAddress])
+}
+
+// Security incidents tracking
+model SecurityIncident {
+  id          String   @id @default(cuid())
+  type        String   // "brute_force", "suspicious_login", "data_breach_attempt", etc.
+  severity    String   // "low", "medium", "high", "critical"
+  description String
+  ipAddress   String?
+  userAgent   String?
+  userId      String?
+  resolved    Boolean  @default(false)
+  resolvedAt  DateTime?
+  createdAt   DateTime @default(now())
+  
+  @@index([type])
+  @@index([severity])
+  @@index([resolved])
+  @@index([createdAt])
+  @@index([ipAddress])
 } 

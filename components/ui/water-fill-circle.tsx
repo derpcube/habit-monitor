@@ -30,12 +30,20 @@ export default function WaterFillCircle({
     if (progress === 0) return 'rgba(239, 68, 68, 0.8)' // Red
     if (progress === 100) return 'rgba(34, 197, 94, 0.9)' // Green
     
-    // Interpolate between red and green
-    const red = Math.round(239 - (205 * progress / 100))
-    const green = Math.round(68 + (129 * progress / 100))
-    const blue = Math.round(68 + (26 * progress / 100))
-    
-    return `rgba(${red}, ${green}, ${blue}, 0.85)`
+    // Use a darker, more contrasted color scheme for better visibility
+    if (progress <= 50) {
+      // Interpolate from red to dark orange/brown for low percentages
+      const red = Math.round(239 - (100 * progress / 50))
+      const green = Math.round(68 + (100 * progress / 50))
+      const blue = 68
+      return `rgba(${red}, ${green}, ${blue}, 0.9)` // Higher opacity for better visibility
+    } else {
+      // Interpolate from orange to green for higher percentages
+      const red = Math.round(139 - (105 * (progress - 50) / 50))
+      const green = Math.round(168 + (29 * (progress - 50) / 50))
+      const blue = Math.round(68 + (26 * (progress - 50) / 50))
+      return `rgba(${red}, ${green}, ${blue}, 0.9)`
+    }
   }
 
   // Glow effect color
@@ -43,11 +51,17 @@ export default function WaterFillCircle({
     if (progress === 0) return 'rgba(239, 68, 68, 0.3)'
     if (progress === 100) return 'rgba(34, 197, 94, 0.4)'
     
-    const red = Math.round(239 - (205 * progress / 100))
-    const green = Math.round(68 + (129 * progress / 100))
-    const blue = Math.round(68 + (26 * progress / 100))
-    
-    return `rgba(${red}, ${green}, ${blue}, 0.3)`
+    if (progress <= 50) {
+      const red = Math.round(239 - (100 * progress / 50))
+      const green = Math.round(68 + (100 * progress / 50))
+      const blue = 68
+      return `rgba(${red}, ${green}, ${blue}, 0.4)`
+    } else {
+      const red = Math.round(139 - (105 * (progress - 50) / 50))
+      const green = Math.round(168 + (29 * (progress - 50) / 50))
+      const blue = Math.round(68 + (26 * (progress - 50) / 50))
+      return `rgba(${red}, ${green}, ${blue}, 0.4)`
+    }
   }
 
   const waterColor = getWaterColor(animatedPercentage)
@@ -170,8 +184,8 @@ export default function WaterFillCircle({
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.5 }}
           >
-            <div className={`font-bold text-gray-800 dark:text-white drop-shadow-lg ${
-              animatedPercentage === 100 ? 'text-4xl text-white' : 'text-3xl'
+            <div className={`font-bold drop-shadow-lg ${
+              animatedPercentage === 100 ? 'text-4xl text-white' : 'text-3xl text-black dark:text-white'
             }`}>
               {Math.round(animatedPercentage)}%
             </div>
@@ -186,7 +200,7 @@ export default function WaterFillCircle({
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.6 }}
           >
-            <div className="text-sm text-gray-300 dark:text-gray-300 font-medium">
+            <div className="text-sm text-black dark:text-white font-medium drop-shadow-lg">
               {completed}/{total}
             </div>
           </motion.div>
