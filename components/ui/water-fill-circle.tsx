@@ -164,7 +164,7 @@ export default function WaterFillCircle({
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div
             className={`text-center z-10 ml-1 ${
-              animatedPercentage === 100 ? '-mt-8 ml-3' : '-mt-7'
+              animatedPercentage === 100 ? '-mt-6 ml-3' : '-mt-7'
             }`}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -210,25 +210,6 @@ export default function WaterFillCircle({
           </>
         )}
       </div>
-
-      {/* Floating Confetti - Outside the circle */}
-      {animatedPercentage === 100 && (
-        <motion.div
-          className="absolute -top-8 left-1/2 transform -translate-x-1/2"
-          initial={{ scale: 0, rotate: 0, y: 0 }}
-          animate={{ 
-            scale: [0, 1.5, 1.2], 
-            rotate: [0, 360, 720],
-            y: [0, -10, 0]
-          }}
-          transition={{ 
-            duration: 1.2, 
-            delay: 0.3 
-          }}
-        >
-          <span className="text-4xl">🎉</span>
-        </motion.div>
-      )}
 
       {/* Status Text */}
       <motion.div

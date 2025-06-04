@@ -19,7 +19,7 @@ interface Habit {
   category?: string
   frequency: string
   target: number
-  days?: string[]
+  days?: string // This should be a JSON string in the database
   createdAt: string
   updatedAt: string
   entries: HabitEntry[]
@@ -67,11 +67,10 @@ export default function Dashboard() {
       const response = await fetch('/api/habits')
       if (response.ok) {
         const data = await response.json()
-        // Ensure each habit has an entries array and parse days if needed
+        // Ensure each habit has an entries array
         const habitsWithEntries = data.map((habit: any) => ({
           ...habit,
-          entries: habit.entries || [],
-          days: habit.days ? (typeof habit.days === 'string' ? JSON.parse(habit.days) : habit.days) : null
+          entries: habit.entries || []
         }))
         setHabits(habitsWithEntries)
       }
@@ -85,8 +84,7 @@ export default function Dashboard() {
   const handleHabitCreated = (newHabit: Habit) => {
     const habitWithEntries = {
       ...newHabit,
-      entries: newHabit.entries || [],
-      days: newHabit.days ? (typeof newHabit.days === 'string' ? JSON.parse(newHabit.days) : newHabit.days) : null
+      entries: newHabit.entries || []
     }
     setHabits([habitWithEntries, ...habits])
     setIsCreateModalOpen(false)
@@ -95,8 +93,7 @@ export default function Dashboard() {
   const handleHabitUpdated = (updatedHabit: Habit) => {
     const habitWithEntries = {
       ...updatedHabit,
-      entries: updatedHabit.entries || [],
-      days: updatedHabit.days ? (typeof updatedHabit.days === 'string' ? JSON.parse(updatedHabit.days) : updatedHabit.days) : null
+      entries: updatedHabit.entries || []
     }
     setHabits(habits.map(h => h.id === habitWithEntries.id ? habitWithEntries : h))
   }

@@ -13,7 +13,7 @@ interface Habit {
   category?: string
   frequency: string
   target: number
-  days?: string[]
+  days?: string
   createdAt: string
   updatedAt: string
   entries: any[]
