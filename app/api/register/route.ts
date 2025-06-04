@@ -43,6 +43,8 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
+    console.error('Registration error:', error)
+    
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Invalid input', details: error.errors },
@@ -51,7 +53,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }
