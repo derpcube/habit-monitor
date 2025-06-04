@@ -51,6 +51,7 @@ model User {
   accounts Account[]
   sessions Session[]
   habits   Habit[]
+  aiRecommendations AIRecommendation[]
 }
 
 model Habit {
@@ -73,15 +74,38 @@ model Habit {
 }
 
 model HabitEntry {
-  id        String   @id @default(cuid())
-  date      DateTime @default(now())
-  completed Boolean  @default(true)
-  value     Int      @default(1) // for habits that can be completed multiple times
-  notes     String?
-  habitId   String
+  id            String   @id @default(cuid())
+  date          DateTime @default(now())
+  completed     Boolean  @default(true)
+  value         Int      @default(1) // for habits that can be completed multiple times
+  notes         String?
+  completedAt   DateTime? // When the habit was actually completed (for time tracking)
+  timeOfDay     String?  // "morning", "afternoon", "evening", "night" for better AI insights
+  mood          Int?     @default(5) // 1-10 scale for correlation analysis
+  difficulty    Int?     @default(5) // 1-10 scale, how difficult was it today
+  habitId       String
 
   habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
 
   @@unique([habitId, date])
   @@index([habitId])
+  @@index([timeOfDay])
+  @@index([completedAt])
+}
+
+// New model to track AI recommendations to prevent duplicates
+model AIRecommendation {
+  id              String   @id @default(cuid())
+  userId          String
+  recommendationType String // "habit_suggestion", "time_optimization", "pattern_usage", etc.
+  recommendationData Json   // Store the recommendation details
+  createdAt       DateTime @default(now())
+  usedAt          DateTime? // When the user acted on this recommendation
+  dismissed       Boolean  @default(false)
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([recommendationType])
+  @@index([createdAt])
 } 

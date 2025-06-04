@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
-import { Plus, Settings, LogOut, Calendar, TrendingUp, Target, BarChart3, Flame, Moon, Sun } from 'lucide-react'
+import { Plus, Settings, LogOut, Calendar, TrendingUp, Target, BarChart3, Flame, Moon, Sun, Brain, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTheme } from '@/components/theme-provider'
 import HabitList from '@/components/habits/habit-list'
@@ -10,6 +10,12 @@ import CreateHabitModal from '@/components/habits/create-habit-modal'
 import StatsOverview from '@/components/stats/stats-overview'
 import StreakMonitor from '@/components/stats/streak-monitor'
 import HabitChart from '@/components/habits/habit-chart'
+import AIInsights from '@/components/ai-insights'
+import AIWeeklyForecast from '@/components/ai-weekly-forecast'
+import AICoaching from '@/components/ai/ai-coaching'
+import SmartSchedule from '@/components/ai/smart-schedule'
+import QuickActions from '@/components/habits/quick-actions'
+import HabitSuggestions from '@/components/habits/habit-suggestions'
 
 interface Habit {
   id: string
@@ -31,9 +37,13 @@ interface HabitEntry {
   completed: boolean
   value: number
   notes?: string
+  completedAt?: string
+  timeOfDay?: string
+  mood?: number
+  difficulty?: number
 }
 
-type DashboardTab = 'overview' | 'habits' | 'analytics' | 'streaks'
+type DashboardTab = 'overview' | 'habits' | 'analytics' | 'streaks' | 'ai' | 'forecast'
 
 // Helper function to check if habit should be active today
 const isHabitActiveToday = (habit: Habit): boolean => {
@@ -50,13 +60,18 @@ const isHabitActiveToday = (habit: Habit): boolean => {
   return true
 }
 
-export default function Dashboard() {
+interface DashboardProps {
+  initialHabits?: Habit[]
+}
+
+export default function Dashboard({ initialHabits = [] }: DashboardProps) {
   const { data: session } = useSession()
   const { theme, toggleTheme } = useTheme()
-  const [habits, setHabits] = useState<Habit[]>([])
+  const [habits, setHabits] = useState<Habit[]>(initialHabits || [])
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview')
+  const [showForm, setShowForm] = useState(false)
 
   useEffect(() => {
     fetchHabits()
@@ -107,6 +122,11 @@ export default function Dashboard() {
   }
 
   const getTodayStats = () => {
+    // Add defensive check for habits array
+    if (!habits || !Array.isArray(habits)) {
+      return { completed: 0, total: 0, percentage: 0 }
+    }
+
     const today = new Date().toISOString().split('T')[0]
     let completed = 0
     let total = 0
@@ -126,6 +146,11 @@ export default function Dashboard() {
   }
 
   const getStreakData = () => {
+    // Add defensive check for habits array
+    if (!habits || !Array.isArray(habits)) {
+      return []
+    }
+
     return habits.map(habit => {
       // Defensive check for entries
       if (!habit || !habit.entries) {
@@ -170,7 +195,48 @@ export default function Dashboard() {
     { id: 'habits' as const, label: 'My Habits', icon: Target },
     { id: 'analytics' as const, label: 'Analytics', icon: BarChart3 },
     { id: 'streaks' as const, label: 'Streaks', icon: Flame },
+    { id: 'ai' as const, label: 'AI Insights', icon: Brain },
+    { id: 'forecast' as const, label: 'AI Forecast', icon: Zap },
   ]
+
+  const handleQuickComplete = async (habitId: string) => {
+    // Logic for quick completion
+    const today = new Date().toISOString().split('T')[0]
+    
+    try {
+      const response = await fetch(`/api/habits/${habitId}/entries`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: today,
+          completed: true,
+          value: 1,
+          completedAt: new Date().toISOString()
+        })
+      })
+
+      if (response.ok) {
+        const newEntry = await response.json()
+        // Update local state with proper HabitEntry and defensive check
+        setHabits(prev => (prev || []).map(habit => 
+          habit.id === habitId 
+            ? {
+                ...habit,
+                entries: [...(habit.entries || []), newEntry]
+              }
+            : habit
+        ))
+      }
+    } catch (error) {
+      console.error('Error completing habit:', error)
+    }
+  }
+
+  const handleAddSuggestion = (suggestion: any) => {
+    // Add suggested habit
+    setIsCreateModalOpen(true)
+    // You could pre-fill the form with suggestion data
+  }
 
   if (isLoading) {
     return (
@@ -250,95 +316,36 @@ export default function Dashboard() {
 
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 pb-6 sm:pb-8">
         {activeTab === 'overview' && (
-          <div className="bg-white dark:bg-gray-800 rounded-b-xl shadow-sm border-t-0 border dark:border-gray-700">
-            <div className="p-4 sm:p-6 lg:p-8">
-              {/* Stats Overview */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-                <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-4 sm:p-6 border border-blue-200 dark:border-blue-800">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 sm:p-3 bg-blue-500 rounded-lg">
-                      <Calendar className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-300">Today's Progress</p>
-                      <p className="text-xl sm:text-2xl font-bold text-blue-900 dark:text-blue-100">
-                        {todayStats.completed}/{todayStats.total}
-                      </p>
-                      <p className="text-xs sm:text-sm text-blue-600 dark:text-blue-400">{todayStats.percentage}% complete</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-4 sm:p-6 border border-green-200 dark:border-green-800">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 sm:p-3 bg-green-500 rounded-lg">
-                      <TrendingUp className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-xs sm:text-sm font-medium text-green-700 dark:text-green-300">Longest Streak</p>
-                      <p className="text-xl sm:text-2xl font-bold text-green-900 dark:text-green-100">{longestStreak}</p>
-                      <p className="text-xs sm:text-sm text-green-600 dark:text-green-400">days</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-4 sm:p-6 border border-purple-200 dark:border-purple-800 sm:col-span-2 lg:col-span-1">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 sm:p-3 bg-purple-500 rounded-lg">
-                      <Target className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-xs sm:text-sm font-medium text-purple-700 dark:text-purple-300">Total Habits</p>
-                      <p className="text-xl sm:text-2xl font-bold text-purple-900 dark:text-purple-100">{habits.length}</p>
-                      <p className="text-xs sm:text-sm text-purple-600 dark:text-purple-400">active</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Main Content */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-                {/* Habits List */}
-                <div className="lg:col-span-2">
-                  <div className="border-b dark:border-gray-700 pb-4 mb-6">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Habits</h2>
-                    <p className="text-gray-600 dark:text-gray-400 text-sm">Quick view of your habits</p>
-                  </div>
-                  <HabitList 
-                    habits={habits.slice(0, 5)} // Show only first 5 habits in overview
-                    onHabitUpdated={handleHabitUpdated}
-                    onRefresh={handleRefresh}
-                  />
-                  {habits.length > 5 && (
-                    <div className="mt-4 text-center">
-                      <Button
-                        variant="outline"
-                        onClick={() => setActiveTab('habits')}
-                        className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-                      >
-                        View All Habits
-                      </Button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Quick Stats */}
-                <div className="space-y-6">
-                  <StatsOverview habits={habits} />
-                </div>
-              </div>
+          <div className="space-y-6">
+            {/* Quick Actions Section */}
+            <QuickActions 
+              habits={habits || []}
+              onQuickComplete={handleQuickComplete}
+              onCreateHabit={() => setIsCreateModalOpen(true)}
+            />
+            
+            <StatsOverview habits={habits || []} />
+            
+            {/* Recent Activity */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Today's Habits</h2>
+              <HabitList 
+                habits={(habits || []).filter(h => isHabitActiveToday(h))} 
+                onHabitUpdated={handleHabitUpdated}
+                onRefresh={handleRefresh}
+              />
             </div>
           </div>
         )}
 
         {activeTab === 'habits' && (
-          <div className="bg-white dark:bg-gray-800 rounded-b-xl shadow-sm border-t-0 border dark:border-gray-700">
-            <div className="p-4 sm:p-6 border-b dark:border-gray-700">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Your Habits</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">Manage and track all your habits</p>
-            </div>
+          <div className="space-y-6">
+            <HabitSuggestions 
+              onAddSuggestion={handleAddSuggestion}
+              userHabits={(habits || []).map(h => ({ title: h.title, category: h.category }))}
+            />
             <HabitList 
-              habits={habits} 
+              habits={habits || []} 
               onHabitUpdated={handleHabitUpdated}
               onRefresh={handleRefresh}
             />
@@ -346,46 +353,30 @@ export default function Dashboard() {
         )}
 
         {activeTab === 'analytics' && (
-          <div className="bg-white dark:bg-gray-800 rounded-b-xl shadow-sm border-t-0 border dark:border-gray-700">
-            <div className="p-4 sm:p-6 border-b dark:border-gray-700">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Analytics</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">Detailed insights into your habit performance</p>
-            </div>
-            <div className="p-4 sm:p-6">
-              {habits.length === 0 ? (
-                <div className="text-center py-12">
-                  <BarChart3 className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No analytics yet</h3>
-                  <p className="text-gray-500 dark:text-gray-400 mb-4">
-                    Create some habits to view detailed analytics and charts.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <StatsOverview habits={habits} />
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                    {habits.map((habit) => (
-                      <HabitChart key={habit.id} habit={habit} />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+          <div className="space-y-6">
+            {(habits || []).map((habit) => (
+              <HabitChart key={habit.id} habit={habit} />
+            ))}
           </div>
         )}
 
         {activeTab === 'streaks' && (
-          <div className="bg-white dark:bg-gray-800 rounded-b-xl shadow-sm border-t-0 border dark:border-gray-700">
-            <div className="p-4 sm:p-6 border-b dark:border-gray-700">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
-                <Flame className="w-5 h-5 text-orange-500" />
-                <span>Streak Monitor</span>
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">Track your consistency and celebrate your streaks</p>
-            </div>
-            <div className="p-4 sm:p-6">
-              <StreakMonitor habits={habits} />
-            </div>
+          <div className="space-y-6">
+            <StreakMonitor habits={habits || []} />
+          </div>
+        )}
+
+        {activeTab === 'ai' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <AIInsights habits={habits || []} />
+            <AICoaching habits={habits || []} />
+          </div>
+        )}
+
+        {activeTab === 'forecast' && (
+          <div className="space-y-6">
+            <SmartSchedule habits={habits || []} />
+            <AIWeeklyForecast habits={habits || []} />
           </div>
         )}
       </div>

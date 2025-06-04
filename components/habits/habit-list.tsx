@@ -5,6 +5,8 @@ import { Check, Circle, Calendar, TrendingUp, Trash2, Edit3, MoreVertical } from
 import { Button } from '@/components/ui/button'
 import { formatDateShort, isToday, getDateString } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
+import HabitDetailModal from './habit-detail-modal'
+import HabitEntryModal from './habit-entry-modal'
 
 interface HabitEntry {
   id: string
@@ -12,6 +14,10 @@ interface HabitEntry {
   completed: boolean
   value: number
   notes?: string
+  completedAt?: string
+  timeOfDay?: string
+  mood?: number
+  difficulty?: number
 }
 
 interface Habit {
@@ -40,6 +46,10 @@ export default function HabitList({ habits, onHabitUpdated, onRefresh }: HabitLi
   const [showMenu, setShowMenu] = useState<string | null>(null)
   const [recentlyCompleted, setRecentlyCompleted] = useState<Set<string>>(new Set())
   const menuRef = useRef<HTMLDivElement>(null)
+  const [selectedHabit, setSelectedHabit] = useState<Habit | null>(null)
+  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [showEntryModal, setShowEntryModal] = useState(false)
+  const [entryHabit, setEntryHabit] = useState<Habit | null>(null)
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -71,44 +81,40 @@ export default function HabitList({ habits, onHabitUpdated, onRefresh }: HabitLi
         return
       }
     }
-    
-    // Prevent multiple rapid clicks
-    if (completingHabits.has(habit.id)) {
-      return
-    }
-    
-    // Defensive check for entries
-    const entries = habit.entries || []
-    const todayEntry = entries.find(entry => 
-      entry && entry.date && entry.date.split('T')[0] === today
-    )
-    
-    const isCompleted = todayEntry?.completed || false
-    
-    setCompletingHabits(prev => new Set(prev).add(habit.id))
 
-    // Add to recently completed for visual feedback
-    if (!isCompleted) {
-      setRecentlyCompleted(prev => new Set(prev).add(habit.id))
+    // Open enhanced entry modal instead of simple toggle
+    setEntryHabit(habit)
+    setShowEntryModal(true)
+  }
+
+  const handleEntrySubmit = async (data: any) => {
+    if (!entryHabit) return
+
+    const today = getDateString(new Date())
+    setCompletingHabits(prev => new Set(prev).add(entryHabit.id))
+
+    // Add to recently completed for visual feedback if completing
+    if (data.completed) {
+      setRecentlyCompleted(prev => new Set(prev).add(entryHabit.id))
       // Remove from recently completed after animation
       setTimeout(() => {
         setRecentlyCompleted(prev => {
           const updated = new Set(prev)
-          updated.delete(habit.id)
+          updated.delete(entryHabit.id)
           return updated
         })
       }, 1500)
     }
 
     try {
-      const response = await fetch(`/api/habits/${habit.id}/entries`, {
+      const response = await fetch(`/api/habits/${entryHabit.id}/entries`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           date: today,
-          completed: !isCompleted,
+          ...data,
         }),
       })
 
@@ -118,7 +124,7 @@ export default function HabitList({ habits, onHabitUpdated, onRefresh }: HabitLi
           onRefresh()
           setCompletingHabits(prev => {
             const updated = new Set(prev)
-            updated.delete(habit.id)
+            updated.delete(entryHabit.id)
             return updated
           })
         }, 800)
@@ -126,26 +132,26 @@ export default function HabitList({ habits, onHabitUpdated, onRefresh }: HabitLi
         // Handle error case
         setCompletingHabits(prev => {
           const updated = new Set(prev)
-          updated.delete(habit.id)
+          updated.delete(entryHabit.id)
           return updated
         })
         setRecentlyCompleted(prev => {
           const updated = new Set(prev)
-          updated.delete(habit.id)
+          updated.delete(entryHabit.id)
           return updated
         })
       }
     } catch (error) {
-      console.error('Error toggling habit:', error)
+      console.error('Error updating habit:', error)
       // Remove from recently completed on error
       setRecentlyCompleted(prev => {
         const updated = new Set(prev)
-        updated.delete(habit.id)
+        updated.delete(entryHabit.id)
         return updated
       })
       setCompletingHabits(prev => {
         const updated = new Set(prev)
-        updated.delete(habit.id)
+        updated.delete(entryHabit.id)
         return updated
       })
     }
@@ -244,6 +250,25 @@ export default function HabitList({ habits, onHabitUpdated, onRefresh }: HabitLi
     acc[category].push(habit)
     return acc
   }, {} as Record<string, Habit[]>)
+
+  const handleHabitClick = (habit: Habit) => {
+    setSelectedHabit(habit)
+    setShowDetailModal(true)
+  }
+
+  const handleDeleteHabit = async (habitId: string) => {
+    try {
+      const response = await fetch(`/api/habits/${habitId}`, {
+        method: 'DELETE'
+      })
+      
+      if (response.ok) {
+        onRefresh?.()
+      }
+    } catch (error) {
+      console.error('Error deleting habit:', error)
+    }
+  }
 
   if (habits.length === 0) {
     return (
@@ -358,15 +383,16 @@ export default function HabitList({ habits, onHabitUpdated, onRefresh }: HabitLi
 
                         <div className="flex-1 min-w-0">
                           <motion.div 
-                            className="flex items-center space-x-2 sm:space-x-3"
+                            className="flex items-center space-x-2 sm:space-x-3 cursor-pointer"
                             animate={isRecentlyCompleted ? { scale: [1, 1.02, 1] } : {}}
                             transition={{ duration: 0.3 }}
+                            onClick={() => handleHabitClick(habit)}
                           >
                             <div
                               className="w-3 h-3 rounded-full transition-all duration-300 flex-shrink-0"
                               style={{ backgroundColor: habit.color }}
                             />
-                            <h3 className={`font-medium transition-all duration-300 truncate ${
+                            <h3 className={`font-medium transition-all duration-300 truncate hover:text-blue-600 dark:hover:text-blue-400 ${
                               isCompletedToday ? 'text-gray-500 dark:text-gray-400 line-through' : 'text-gray-900 dark:text-white'
                             }`}>
                               {habit.title}
@@ -383,7 +409,11 @@ export default function HabitList({ habits, onHabitUpdated, onRefresh }: HabitLi
                             )}
                           </motion.div>
                           {habit.description && (
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 ml-6 truncate">
+                            <p 
+                              className="text-sm text-gray-500 dark:text-gray-400 mt-1 ml-6 truncate cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                              onClick={() => handleHabitClick(habit)}
+                              title="Click to view full description"
+                            >
                               {habit.description}
                             </p>
                           )}
@@ -471,6 +501,60 @@ export default function HabitList({ habits, onHabitUpdated, onRefresh }: HabitLi
           </div>
         </div>
       ))}
+
+      {/* Habit Detail Modal */}
+      {showDetailModal && selectedHabit && (
+        <HabitDetailModal
+          habit={selectedHabit}
+          isOpen={showDetailModal}
+          onClose={() => {
+            setShowDetailModal(false)
+            setSelectedHabit(null)
+          }}
+          onEdit={(habit) => {
+            onHabitUpdated(habit)
+            setShowDetailModal(false)
+            setSelectedHabit(null)
+          }}
+          onDelete={(habitId) => {
+            deleteHabit(habitId)
+            setShowDetailModal(false)
+            setSelectedHabit(null)
+          }}
+        />
+      )}
+
+      {/* Habit Entry Modal */}
+      {showEntryModal && entryHabit && (
+        <HabitEntryModal
+          isOpen={showEntryModal}
+          onClose={() => {
+            setShowEntryModal(false)
+            setEntryHabit(null)
+          }}
+          onSubmit={handleEntrySubmit}
+          habit={{
+            id: entryHabit.id,
+            title: entryHabit.title,
+            color: entryHabit.color,
+          }}
+          existingEntry={(() => {
+            const today = getDateString(new Date())
+            const entries = entryHabit.entries || []
+            const todayEntry = entries.find(entry => 
+              entry && entry.date && entry.date.split('T')[0] === today
+            )
+            return todayEntry ? {
+              completed: todayEntry.completed,
+              notes: todayEntry.notes,
+              completedAt: todayEntry.completedAt,
+              timeOfDay: todayEntry.timeOfDay,
+              mood: todayEntry.mood,
+              difficulty: todayEntry.difficulty,
+            } : undefined
+          })()}
+        />
+      )}
     </div>
   )
 } 

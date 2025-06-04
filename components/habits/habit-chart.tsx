@@ -33,6 +33,10 @@ interface HabitEntry {
   completed: boolean
   value: number
   notes?: string
+  completedAt?: string
+  timeOfDay?: string
+  mood?: number
+  difficulty?: number
 }
 
 interface Habit {

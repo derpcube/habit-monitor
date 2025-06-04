@@ -9,6 +9,10 @@ const entrySchema = z.object({
   completed: z.boolean().default(true),
   value: z.number().min(1).default(1),
   notes: z.string().optional(),
+  completedAt: z.string().optional(), // ISO datetime string
+  timeOfDay: z.enum(['morning', 'afternoon', 'evening', 'night']).optional(),
+  mood: z.number().min(1).max(10).optional(),
+  difficulty: z.number().min(1).max(10).optional(),
 })
 
 export async function POST(
@@ -50,6 +54,10 @@ export async function POST(
         completed: data.completed,
         value: data.value,
         notes: data.notes,
+        completedAt: data.completedAt ? new Date(data.completedAt) : undefined,
+        timeOfDay: data.timeOfDay,
+        mood: data.mood,
+        difficulty: data.difficulty,
       },
       create: {
         habitId,
@@ -57,6 +65,10 @@ export async function POST(
         completed: data.completed,
         value: data.value,
         notes: data.notes,
+        completedAt: data.completedAt ? new Date(data.completedAt) : undefined,
+        timeOfDay: data.timeOfDay,
+        mood: data.mood,
+        difficulty: data.difficulty,
       },
     })
 
