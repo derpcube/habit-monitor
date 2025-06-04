@@ -108,15 +108,10 @@ export default function AIInsights({ habits, onRefresh, onCreateHabit }: AIInsig
 
   const loadUsedRecommendations = async () => {
     try {
-      const response = await fetch('/api/recommendations')
-      if (response.ok) {
-        const usedRecommendations = await response.json()
-        const ai = getHabitAnalyticsAI()
-        const recommendationKeys = usedRecommendations.map((rec: any) => 
-          ai.markRecommendationAsUsed(rec.recommendationType, rec.recommendationData)
-        )
-        ai.setUsedRecommendations(recommendationKeys)
-      }
+      // For now, we'll use local storage instead of the API
+      const usedRecommendations = JSON.parse(localStorage.getItem('usedRecommendations') || '[]')
+      const ai = getHabitAnalyticsAI()
+      ai.setUsedRecommendations(usedRecommendations)
     } catch (error) {
       console.error('Error loading used recommendations:', error)
     }
@@ -126,10 +121,15 @@ export default function AIInsights({ habits, onRefresh, onCreateHabit }: AIInsig
     if (insight.data?.recommendationType) {
       try {
         const ai = getHabitAnalyticsAI()
-        ai.markRecommendationAsUsed(
+        const recommendationKey = ai.markRecommendationAsUsed(
           insight.data.recommendationType, 
           insight.data
         )
+        
+        // Save to localStorage
+        const usedRecommendations = JSON.parse(localStorage.getItem('usedRecommendations') || '[]')
+        usedRecommendations.push(recommendationKey)
+        localStorage.setItem('usedRecommendations', JSON.stringify(usedRecommendations))
       } catch (error) {
         console.error('Error tracking recommendation usage:', error)
       }
