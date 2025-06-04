@@ -171,7 +171,7 @@ export default function WaterFillCircle({
             transition={{ duration: 0.8, delay: 0.5 }}
           >
             <div className={`font-bold text-gray-800 dark:text-white drop-shadow-lg ${
-              animatedPercentage === 100 ? 'text-4xl text-green-800 dark:text-green-300' : 'text-3xl'
+              animatedPercentage === 100 ? 'text-4xl text-white' : 'text-3xl'
             }`}>
               {Math.round(animatedPercentage)}%
             </div>
@@ -186,7 +186,7 @@ export default function WaterFillCircle({
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.6 }}
           >
-            <div className="text-sm text-gray-600 dark:text-gray-300 font-medium">
+            <div className="text-sm text-gray-300 dark:text-gray-300 font-medium">
               {completed}/{total}
             </div>
           </motion.div>
