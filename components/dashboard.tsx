@@ -232,10 +232,48 @@ export default function Dashboard({ initialHabits = [] }: DashboardProps) {
     }
   }
 
-  const handleAddSuggestion = (suggestion: any) => {
-    // Add suggested habit
-    setIsCreateModalOpen(true)
-    // You could pre-fill the form with suggestion data
+  const handleAddSuggestion = async (suggestion: any) => {
+    try {
+      console.log('🤖 Creating habit from AI suggestion:', suggestion)
+      
+      // Create habit data from suggestion
+      const habitData = {
+        title: suggestion.title,
+        description: suggestion.description,
+        category: suggestion.category,
+        frequency: 'daily',
+        target: 1,
+        color: suggestion.color
+      }
+
+      console.log('🚀 Sending habit data to API:', habitData)
+
+      const response = await fetch('/api/habits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(habitData)
+      })
+
+      console.log('📡 API Response status:', response.status)
+
+      if (response.ok) {
+        const newHabit = await response.json()
+        console.log('✅ Successfully created habit:', newHabit)
+        
+        // Update local state
+        setHabits(prev => [newHabit, ...(prev || [])])
+        
+        // Show success feedback
+        alert(`✅ Successfully created "${suggestion.title}" habit!`)
+      } else {
+        const errorData = await response.json()
+        console.error('❌ Server error creating habit:', errorData)
+        alert(`❌ Failed to create habit: ${errorData.error || 'Unknown error'}`)
+      }
+    } catch (error) {
+      console.error('🔥 Network error creating habit:', error)
+      alert(`❌ Network error: Could not create habit. Please check your connection and try again.`)
+    }
   }
 
   if (isLoading) {

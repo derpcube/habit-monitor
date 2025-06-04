@@ -31,7 +31,7 @@ interface HabitSuggestion {
 }
 
 interface HabitSuggestionsProps {
-  onAddSuggestion: (suggestion: HabitSuggestion) => void
+  onAddSuggestion: (suggestion: HabitSuggestion) => Promise<void>
   userHabits: Array<{ title: string; category?: string }>
 }
 
@@ -39,6 +39,7 @@ export default function HabitSuggestions({ onAddSuggestion, userHabits }: HabitS
   const [suggestions, setSuggestions] = useState<HabitSuggestion[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [addingHabit, setAddingHabit] = useState<string | null>(null)
 
   // Smart suggestions based on user's existing habits
   const generateSmartSuggestions = (): HabitSuggestion[] => {
@@ -279,12 +280,26 @@ export default function HabitSuggestions({ onAddSuggestion, userHabits }: HabitS
                 
                 <Button
                   size="sm"
-                  onClick={() => onAddSuggestion(suggestion)}
+                  onClick={async () => {
+                    setAddingHabit(suggestion.id)
+                    try {
+                      await onAddSuggestion(suggestion)
+                    } catch (error) {
+                      console.error('Error adding suggestion:', error)
+                    } finally {
+                      setAddingHabit(null)
+                    }
+                  }}
+                  disabled={addingHabit === suggestion.id}
                   className="flex items-center space-x-1 flex-shrink-0"
                   style={{ backgroundColor: suggestion.color }}
                 >
-                  <Plus className="w-3 h-3" />
-                  <span>Add</span>
+                  {addingHabit === suggestion.id ? (
+                    <div className="w-3 h-3 animate-spin rounded-full border border-white border-t-transparent"></div>
+                  ) : (
+                    <Plus className="w-3 h-3" />
+                  )}
+                  <span>{addingHabit === suggestion.id ? 'Adding...' : 'Add'}</span>
                 </Button>
               </div>
 
